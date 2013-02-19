@@ -22,7 +22,7 @@ class LastFmApi:
     if limit:
       addr+='&limit='+str(limit)
     if user:
-      addr+='&user='+user
+      addr+='&user='+user.replace(' ','%20')
     addr+='&format=json'
     req = urllib2.Request(url=addr)
     api_page = urllib2.urlopen(req)
