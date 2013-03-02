@@ -12,18 +12,10 @@ class LastFmApi:
   def call(self, method=None, artist=None, limit=None, user = None, api_key=None):
     if api_key is None:
       api_key = self.api_key
-    addr ='http://ws.audioscrobbler.com/2.0/?'
-    if method:
-      addr+='&method='+method
-    if artist:
-      addr+='&artist='+artist.replace(' ','%20')
-    if api_key:
-      addr+='&api_key='+api_key
-    if limit:
-      addr+='&limit='+str(limit)
-    if user:
-      addr+='&user='+user.replace(' ','%20')
-    addr+='&format=json'
+    addr  = 'http://ws.audioscrobbler.com/2.0/?'
+    aritst, user  = [urllib2.quote(x) if x else '' for x in [artist, user]]
+    addr += '&api_key={}&method={}&artist={}&user={}&limit={}'.format(api_key, method, artist, user, limit)
+    addr +='&format=json'
     req = urllib2.Request(url=addr)
     api_page = urllib2.urlopen(req)
     return json.loads(api_page.read())
@@ -45,8 +37,10 @@ def user_experiment():
   user = LastFmUser(api_key, username)
   playcounts = user.get_top_plays(N)
   fplays = [float(i) for i in playcounts]
+  print([str(int(i)) for i in fplays])
   total_counts = np.sum(fplays)
   f_counts = [ float(i)/total_counts for i in fplays]
+  print(['%.2f' % i for i in f_counts])
   some_zipf_dom = [0.25, 0.5, 0.75, 1.0]
   fit_zipf_dom = np.arange(0.25, 0.75, 0.01)
   plot_some_zipf(f_counts, N, some_zipf_dom)
@@ -75,6 +69,7 @@ def plot_fit_zipf(f_counts, N, dom):
     return kl_divergence(f_counts, zipf_vals)
   res = opt.minimize(kl_optimize,[0.5],method='nelder-mead')
   print res.x
+  print res
   kls = []
   for s in dom:
     t = zipf_t(s, N)
